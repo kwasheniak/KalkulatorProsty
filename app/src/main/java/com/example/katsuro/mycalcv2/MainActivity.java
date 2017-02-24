@@ -1,4 +1,4 @@
-﻿package com.example.katsuro.mycalcv2;
+package com.example.katsuro.mycalcv2;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -31,8 +31,10 @@ public class MainActivity extends AppCompatActivity
     private final static int TWO_LAST_CHARS = 2;
     private Button currentButton;
     private TextView textViewResults;
+    private List<String> listOfResults;
     private String text;
     private String currentOperation;
+    private String message;
     private String firstNumber;
     private String secondNumber;
     @Override
@@ -41,11 +43,28 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textViewResults = (TextView) findViewById(R.id.textViewResults);
+        listOfResults = new ArrayList<String>();
         text = EMPTY_STRING;
         currentOperation = EMPTY_STRING;
         firstNumber = EMPTY_STRING;
         secondNumber = EMPTY_STRING;
         sendMessage();
+    }
+
+    public void sendMessage()
+    {
+        if(listOfResults.isEmpty())
+        {
+            textViewResults.setText(text);
+        }
+        else if(listOfResults.size()==LEN_EQUALS_ONE)
+        {
+            textViewResults.setText(listOfResults.get(LEN_EQUALS_ZERO) + NEW_LINE + text);
+        }
+        else if(listOfResults.size()>LEN_EQUALS_ONE)
+        {
+            textViewResults.setText(listOfResults.get(listOfResults.size()-LEN_EQUALS_TWO) + NEW_LINE + listOfResults.get(listOfResults.size()-LEN_EQUALS_ONE) + NEW_LINE + text);
+        }
     }
 
     public void buttonNumberClick(View view)
@@ -55,7 +74,7 @@ public class MainActivity extends AppCompatActivity
         {
             if(firstNumber.length()<NUMBER_LENGTH) // jeśli pierwsza liczba jest mniejsza od ustalonej wielkości("-" liczy sie do długości liczby)
             {
-                if(firstNumber.length()==LEN_EQUALS_ONE && (firstNumber.charAt(FIRST_CHAR) == CHAR_MINUS || firstNumber.charAt(FIRST_CHAR) == CHAR_ZERO) && currentButton.getId() == R.id.buttonZero)
+                if(firstNumber.length()==1 && (firstNumber.charAt(FIRST_CHAR) == CHAR_MINUS || firstNumber.charAt(FIRST_CHAR) == CHAR_ZERO) && currentButton.getId() == R.id.buttonZero)
                 // jeśli pierwsza liczba ma długość 1 i pierwszy znak to - lub 0 i aktualny button to 0
                 {
                     Log.i(TAG,"Do nothing");
@@ -161,6 +180,113 @@ public class MainActivity extends AppCompatActivity
             {
                 Log.i(TAG,"Do nothing");
             }
+        }
+    }
+
+
+    private double operate(String numberFirst, String numberSecond, String operation)
+    {
+        switch(operation)
+        {
+            case "+":
+                return Double.valueOf(numberFirst) + Double.valueOf(numberSecond);
+            case "-":
+                return Double.valueOf(numberFirst) - Double.valueOf(numberSecond);
+            case "×":
+                return Double.valueOf(numberFirst) * Double.valueOf(numberSecond);
+            case "÷":
+                try
+                {
+                    return Double.valueOf(numberFirst) / Double.valueOf(numberSecond);
+                }
+                catch (Exception e)
+                {
+                    Log.d(TAG, e.getMessage());
+                }
+            default:
+                return -1;
+        }
+    }
+
+    private void clear()
+    {
+        currentOperation = EMPTY_STRING;
+        text = EMPTY_STRING;
+        firstNumber = EMPTY_STRING;
+        secondNumber = EMPTY_STRING;
+    }
+
+    public void getResult()
+    {
+        text += EQUALS + String.valueOf(operate(firstNumber, secondNumber, currentOperation)); // wynik operacji
+        Log.i(TAG,"Operation: " + firstNumber + currentOperation + secondNumber + EQUALS + String.valueOf(operate(firstNumber, secondNumber, currentOperation)));
+        listOfResults.add(text); // dodanie wyniku do listy wyników
+        clear(); // czyści zmienne
+        sendMessage();
+    }
+
+    public void buttonEqualsClick(View view)
+    {
+        if(!firstNumber.isEmpty() && !secondNumber.isEmpty() && !currentOperation.isEmpty()) // jeśli firstNumber , SecondNumber i CurrentOperation nie są puste
+        {
+            getResult();
+        }
+        else
+        {
+            Log.i(TAG,"Do nothing");
+        }
+    }
+
+    public void buttonArrowClick(View view)
+    {
+        if(!text.isEmpty())
+        {
+            if(!secondNumber.isEmpty())// jesli secondNumber nie jest pusty
+            {
+                secondNumber = secondNumber.substring(FIRST_CHAR, secondNumber.length()-LAST_CHAR); // usuwa jeden element z secondNumber
+                text = text.substring(FIRST_CHAR, text.length()-LAST_CHAR);
+            }
+            else if(secondNumber.isEmpty() && !currentOperation.isEmpty()) // jesli secondNumber jest puste i currentOperation nie jest pusty
+            {
+                currentOperation = EMPTY_STRING; // zmienia currentOperation na pusty
+                text = text.substring(FIRST_CHAR, text.length()-LAST_CHAR);
+            }
+            else if(secondNumber.isEmpty() && currentOperation.isEmpty() && !firstNumber.isEmpty())// jesli secondNumber i currentNumber są puste i firstNumber nie jest pusty
+            {
+                firstNumber = firstNumber.substring(FIRST_CHAR, firstNumber.length()-LAST_CHAR); // usuwa jeden element z firstNumber
+                text = text.substring(FIRST_CHAR, text.length()-LAST_CHAR);
+            }
+            sendMessage();
+        }
+    }
+
+    public void buttonClearClick(View view)
+    {
+        clear();
+        sendMessage();
+    }
+
+    public void buttonListClick(View view)
+    {
+        Log.i(TAG,"Opening history.");
+        message = EMPTY_STRING;
+        Intent intent = new Intent(this, ListActivity.class);
+        for(int result=0; result < listOfResults.size(); result++)
+        {
+            message += listOfResults.get(result) + NEW_LINE;
+            message += NEW_LINE;
+        }
+        intent.putExtra(EXTRA_MESSAGE, message);
+        startActivity(intent);
+    }
+
+    public void buttonClearListClick(View view)
+    {
+        if(listOfResults.size()>0) // lista wynikow ma byc wieksza od 0
+        {
+            Log.i(TAG,"Deleting history.");
+            listOfResults.clear();
+            sendMessage();
         }
     }
 }
