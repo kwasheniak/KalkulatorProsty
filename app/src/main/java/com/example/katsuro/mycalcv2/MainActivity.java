@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity
         {
             if(firstNumber.length()<NUMBER_LENGTH) // jeśli pierwsza liczba jest mniejsza od ustalonej wielkości("-" liczy sie do długości liczby)
             {
-                if(firstNumber.length()==1 && (firstNumber.charAt(FIRST_CHAR) == CHAR_MINUS || firstNumber.charAt(FIRST_CHAR) == CHAR_ZERO) && currentButton.getId() == R.id.buttonZero)
+                if(firstNumber.length()==LEN_EQUALS_ONE && (firstNumber.charAt(FIRST_CHAR) == CHAR_MINUS || firstNumber.charAt(FIRST_CHAR) == CHAR_ZERO) && currentButton.getId() == R.id.buttonZero)
                 // jeśli pierwsza liczba ma długość 1 i pierwszy znak to - lub 0 i aktualny button to 0
                 {
                     Log.i(TAG,"Do nothing");
